@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}骑手登录 · 鲜达外卖{% endblock %}
+{% block content %}
+<section class="wrap page-form reveal">
+  <div class="form-card">
+    <h1 style="margin-top:0;">骑手端登录</h1>
+    <p style="color:var(--text-muted);margin-top:.2rem;">仅绑定骑手身份的账号可进入骑手工作台。</p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-row">
+        {{ field.label_tag }}
+        {{ field }}
+        {{ field.errors }}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary" style="width:100%;">登录骑手端</button>
+    </form>
+
+    <p style="margin-top:1rem;color:var(--text-muted);font-size:.88rem;">
+      若提示“未绑定骑手身份”，请让管理员在后台 Rider 中绑定账号。
+    </p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}会员计划 · 鲜达外卖{% endblock %}
+{% block content %}
+<section class="page-hero wrap reveal member-hero">
+  <h1>会员计划</h1>
+  <p>多层级权益，让你的每一笔外卖都更值。</p>
+</section>
+
+<section class="wrap reveal">
+  <div class="tier-grid">
+    {% for tier in tiers %}
+    <article class="tier-card {% if tier.name == 'Gold' %}tier-featured{% endif %}">
+      <h3>{{ tier.name }}</h3>
+      <p class="tier-price">{{ tier.price }}</p>
+      <ul>
+        {% for b in tier.benefits %}
+        <li>{{ b }}</li>
+        {% endfor %}
+      </ul>
+      <a class="btn btn-primary" href="{% url 'membership_open' tier=tier.name|lower %}">立即开通</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

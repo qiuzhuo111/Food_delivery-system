@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}优惠专区 · 鲜达外卖{% endblock %}
+{% block content %}
+<section class="page-hero wrap reveal deals-hero">
+  <h1>优惠专区</h1>
+  <p>每日精选活动，帮你在品质与价格之间找到最优解。</p>
+</section>
+
+<section class="wrap reveal">
+  <div class="deal-grid">
+    {% for item in highlights %}
+    <article class="deal-card">
+      <span class="status-pill">{{ item.tag }}</span>
+      <h3>{{ item.title }}</h3>
+      <p>{{ item.desc }}</p>
+      <a class="btn btn-ghost btn-sm" href="{% url 'shop_list' %}">去使用</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="section-title reveal">适用门店</h2>
+  <div class="grid-shops">
+    {% for shop in shops %}
+    <article class="card-shop reveal">
+      <a href="{% url 'shop_detail' shop.pk %}">
+        <div class="card-shop-visual {{ shop.cover_key }}"><span>🔥</span></div>
+        <div class="card-shop-body">
+          <h2>{{ shop.name }}</h2>
+          <p>{% if shop.address %}{{ shop.address }}{% else %}美味即刻出发{% endif %}</p>
+          <div class="card-shop-meta">
+            <span class="badge badge-open">可用优惠</span>
+            <span class="price-tag">配送 ¥{{ shop.delivery_fee }}</span>
+          </div>
+        </div>
+      </a>
+    </article>
+    {% empty %}
+    <p style="color:var(--text-muted);">暂无可用门店。</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

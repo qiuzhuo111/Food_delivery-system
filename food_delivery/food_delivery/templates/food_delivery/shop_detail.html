@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ shop.name }} · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="page-shop wrap">
+  <div class="shop-head reveal">
+    <h1>{{ shop.name }}</h1>
+    <p>{% if shop.address %}{{ shop.address }}{% endif %}{% if shop.phone %} · {{ shop.phone }}{% endif %}</p>
+    {% if not shop.is_open %}
+    <p class="msg msg-warning" style="margin-top:0.75rem;">当前休息中，暂无法下单。</p>
+    {% endif %}
+  </div>
+
+  <div class="layout-shop">
+    <div class="menu">
+      {% regroup dish_rows by category as by_cat %}
+      {% for cat in by_cat %}
+      <div class="menu-block">
+        <h2>{{ cat.grouper }}</h2>
+        {% for row in cat.list %}
+        {% with d=row.dish %}
+        <div class="dish-row">
+          <div class="dish-icon">🍽</div>
+          <div class="dish-info">
+            <h3>{{ d.name }}</h3>
+            {% if d.description %}<p class="desc">{{ d.description }}</p>{% endif %}
+            <div class="dish-price">¥{{ d.price }}</div>
+          </div>
+          <div class="dish-actions">
+            {% if shop.is_open %}
+            <form action="{% url 'cart_add' shop.pk %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="dish_id" value="{{ d.pk }}">
+              <button type="submit" class="btn btn-primary btn-sm">+ 加入</button>
+            </form>
+            {% endif %}
+            {% if row.qty %}
+            <form action="{% url 'cart_update' shop.pk %}" method="post" class="qty-form">
+              {% csrf_token %}
+              <input type="hidden" name="dish_id" value="{{ d.pk }}">
+              <label class="visually-hidden" for="qty-{{ d.pk }}">数量</label>
+              <input type="number" name="quantity" id="qty-{{ d.pk }}" min="0" value="{{ row.qty }}">
+              <button type="submit" class="btn btn-ghost btn-sm">更新</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <aside class="cart-panel reveal">
+      <h2>购物车</h2>
+      {% if not has_cart %}
+      <p class="cart-empty">还没有选餐，点击「加入」开始吧。</p>
+      {% else %}
+      <ul class="cart-lines">
+        {% for row in dish_rows %}
+        {% if row.qty %}
+        <li><span>{{ row.dish.name }} × {{ row.qty }}</span><span>¥{{ row.line_total }}</span></li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+      <div class="cart-total"><span>商品小计</span><span>¥{{ subtotal }}</span></div>
+      <div class="cart-total"><span>配送费</span><span>¥{{ shop.delivery_fee }}</span></div>
+      <div class="cart-total grand"><span>合计</span><span>¥{{ total_preview }}</span></div>
+      <div class="cart-actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'checkout' %}" class="btn btn-primary">去结算</a>
+        {% else %}
+        {% url 'checkout' as co %}
+        <a href="{% url 'login' %}?next={{ co|urlencode }}" class="btn btn-primary">登录后结算</a>
+        {% endif %}
+        <form action="{% url 'cart_clear' shop.pk %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost" style="width:100%;">清空购物车</button>
+        </form>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+<style>.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}</style>
+{% endblock %}

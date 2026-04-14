@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}订单 #{{ order.pk }} · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="page-checkout wrap">
+  <div class="order-detail-card">
+    <h1>订单 #{{ order.pk }}</h1>
+    <div class="order-meta">
+      {{ order.shop.name }} · {{ order.created_at|date:"Y-m-d H:i" }}<br>
+      <span class="status-pill">{{ order.get_status_display }}</span>
+    </div>
+
+    <table class="summary-table">
+      {% for item in order.items.all %}
+      <tr>
+        <td>{{ item.dish_name }} × {{ item.quantity }}</td>
+        <td>¥{{ item.subtotal }}</td>
+      </tr>
+      {% endfor %}
+      <tr><td>配送费</td><td>¥{{ order.delivery_fee }}</td></tr>
+      <tr><td><strong>合计</strong></td><td><strong>¥{{ order.total_amount }}</strong></td></tr>
+    </table>
+
+    <p style="font-size:0.92rem;"><strong>配送地址</strong><br>{{ order.delivery_address }}</p>
+    <p style="font-size:0.92rem;"><strong>联系电话</strong><br>{{ order.contact_phone }}</p>
+    {% if order.remark %}<p style="font-size:0.92rem;"><strong>备注</strong><br>{{ order.remark }}</p>{% endif %}
+
+    <p style="margin-top:1.5rem;">
+      <a href="{% url 'my_orders' %}" class="btn btn-ghost btn-sm">返回列表</a>
+    </p>
+
+    {% if order.status == 'placed' or order.status == 'accepted' %}
+    <form action="{% url 'order_cancel' order.pk %}" method="post" style="margin-top:1rem;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger-ghost btn-sm">取消订单</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

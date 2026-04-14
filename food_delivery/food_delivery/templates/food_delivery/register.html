@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}注册 · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="page-form wrap">
+  <h1>创建账号</h1>
+  <p class="sub">一分钟注册，开始点餐</p>
+  <div class="form-card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-row">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<p class="helptext" style="color:var(--text-muted);font-size:0.82rem;margin:0.25rem 0 0;">{{ field.help_text }}</p>{% endif %}
+        {{ field.errors }}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">注册并登录</button>
+      </div>
+    </form>
+    <p style="text-align:center;margin-top:1.25rem;color:var(--text-muted);font-size:0.92rem;">
+      已有账号？<a href="{% url 'login' %}">去登录</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

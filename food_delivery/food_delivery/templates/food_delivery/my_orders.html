@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}我的订单 · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="page-orders wrap">
+  <div class="shop-head">
+    <h1>我的订单</h1>
+    <p>查看配送进度与订单详情</p>
+  </div>
+  <div class="order-list">
+    {% for order in orders %}
+    <article class="order-card">
+      <div>
+        <a href="{% url 'order_detail' order.pk %}">订单 #{{ order.pk }} · {{ order.shop.name }}</a>
+        <div style="margin-top:0.35rem;font-size:0.88rem;color:var(--text-muted);">
+          {{ order.created_at|date:"Y-m-d H:i" }} · ¥{{ order.total_amount }}
+        </div>
+      </div>
+      <span class="status-pill">{{ order.get_status_display }}</span>
+    </article>
+    {% empty %}
+    <p style="color:var(--text-muted);">暂无订单，<a href="{% url 'shop_list' %}">去点餐</a></p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

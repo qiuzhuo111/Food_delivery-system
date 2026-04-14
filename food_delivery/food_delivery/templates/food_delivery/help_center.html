@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}帮助中心 · 鲜达外卖{% endblock %}
+{% block content %}
+<section class="page-hero wrap reveal help-hero">
+  <h1>帮助中心</h1>
+  <p>常见问题与自助指引，快速解决下单和售后问题。</p>
+</section>
+
+<section class="wrap reveal">
+  <div class="faq-list">
+    {% for row in faqs %}
+    <details class="faq-item" {% if forloop.first %}open{% endif %}>
+      <summary>{{ row.q }}</summary>
+      <p>{{ row.a }}</p>
+    </details>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

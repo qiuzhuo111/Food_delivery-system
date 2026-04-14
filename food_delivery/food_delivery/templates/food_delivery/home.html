@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}首页 · 鲜达外卖{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .shine-text {
+    background: linear-gradient(92deg, #ffffff 10%, #b8dbff 32%, #ffffff 54%, #d9eaff 74%, #ffffff 90%);
+    background-size: 260% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 5.4s linear infinite;
+  }
+  @keyframes shine {
+    0% { background-position: 100% 0; }
+    100% { background-position: -160% 0; }
+  }
+  .hero-parallax-layer {
+    transform: translate3d(0, var(--parallax-y, 0px), 0) scale(1.02);
+    transition: transform .14s linear;
+  }
+  .tilt-card {
+    transform-style: preserve-3d;
+    transition: transform .2s cubic-bezier(.2,.9,.2,1), box-shadow .2s ease;
+    will-change: transform;
+  }
+  .tilt-pop { transform: translateZ(20px); }
+  .reveal-bounce {
+    opacity: 0;
+    transform: translateY(42px) scale(.96);
+  }
+  .reveal-bounce.in-view {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: transform .7s cubic-bezier(.2,.95,.3,1.2), opacity .5s ease;
+  }
+  .icon-float {
+    transition: transform .2s ease, filter .2s ease;
+    will-change: transform;
+  }
+  .icon-float:hover {
+    transform: translateY(-8px) scale(1.08) rotateX(12deg) rotateY(-12deg);
+    filter: drop-shadow(0 14px 18px rgba(0,0,0,.22));
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-apple wrap reveal relative overflow-hidden" id="hero-parallax-root">
+  <div class="hero-parallax-layer absolute inset-0" data-parallax-speed="0.22"
+       style="background: radial-gradient(circle at 80% 20%, rgba(109, 188, 255, .32), transparent 40%), radial-gradient(circle at 20% 80%, rgba(120, 97, 255, .20), transparent 42%);"></div>
+
+  <div class="hero-glass relative z-10">
+    <p class="eyebrow">Fresh Delivery Pro · Immersive UI</p>
+    <h1 class="hero-title shine-text">重新定义外卖体验</h1>
+    <p class="hero-lead">极简玻璃拟态 + 沉浸式景深交互。你将看到滚动视差、3D 鼠标倾斜、流光文字、弹射入场和图标悬浮反馈。</p>
+    <div class="hero-actions">
+      <a href="{% url 'shop_list' %}" class="btn btn-primary">立即点餐</a>
+      <a href="{% url 'deals' %}" class="btn btn-ghost">查看优惠专区</a>
+    </div>
+    <div class="mt-6 flex gap-4 text-3xl">
+      <span class="icon-float">🍣</span>
+      <span class="icon-float">🍕</span>
+      <span class="icon-float">🥗</span>
+      <span class="icon-float">🧋</span>
+      <span class="icon-float">🍜</span>
+    </div>
+  </div>
+</section>
+
+<section class="feature-band wrap reveal">
+  <article class="feature-card bg-1 tilt-card reveal-bounce js-tilt-card">
+    <h3 class="tilt-pop">沉浸式视觉</h3>
+    <p class="tilt-pop">大面积背景图 + 玻璃化层次，强化品牌感。</p>
+  </article>
+  <article class="feature-card bg-2 tilt-card reveal-bounce js-tilt-card">
+    <h3 class="tilt-pop">实时动效反馈</h3>
+    <p class="tilt-pop">滚动、悬停、点击都有高级顺滑过渡。</p>
+  </article>
+  <article class="feature-card bg-3 tilt-card reveal-bounce js-tilt-card">
+    <h3 class="tilt-pop">平台成熟化</h3>
+    <p class="tilt-pop">优惠、会员、帮助中心一站式覆盖。</p>
+  </article>
+</section>
+
+<section class="wrap">
+  <div class="flex items-end justify-between gap-4 mb-4">
+    <h2 class="section-title reveal m-0">热门餐厅</h2>
+    <p class="reveal text-sm text-slate-500 m-0">精选人气门店，菜品丰富不重样</p>
+  </div>
+  <div class="grid-shops" id="shop-card-grid">
+    {% for shop in shops %}
+    <article class="card-shop reveal reveal-bounce tilt-card js-tilt-card">
+      <a href="{% url 'shop_detail' shop.pk %}">
+        <div class="card-shop-visual {{ shop.cover_key }}"><span class="icon-float">🍜</span></div>
+        <div class="card-shop-body">
+          <h2>{{ shop.name }}</h2>
+          <p>{% if shop.address %}{{ shop.address }}{% else %}欢迎光临{% endif %}</p>
+          <div class="card-shop-meta">
+            {% if shop.is_open %}<span class="badge badge-open">营业中</span>{% else %}<span class="badge badge-closed">休息中</span>{% endif %}
+            <span class="price-tag">配送 ¥{{ shop.delivery_fee }}</span>
+          </div>
+        </div>
+      </a>
+    </article>
+    {% empty %}
+    <p style="color:var(--text-muted);">暂无营业中的餐厅，请在管理后台添加店铺。</p>
+    {% endfor %}
+  </div>
+  {% if shops %}
+  <p class="reveal" style="text-align:center;margin-top:0.85rem;">
+    <a href="{% url 'shop_list' %}" class="btn btn-ghost btn-sm">查看全部餐厅</a>
+  </p>
+  {% endif %}
+</section>
+
+<div id="fm-floating-orbs" class="fixed inset-0 pointer-events-none z-0"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/framer-motion/dist/framer-motion.js"></script>
+<script>
+  (function () {
+    if (!window.React || !window.ReactDOM || !window.framerMotion) return;
+    const { createElement: h } = window.React;
+    const rootEl = document.getElementById('fm-floating-orbs');
+    if (!rootEl) return;
+
+    const { motion } = window.framerMotion;
+    const Orb = ({ size, left, top, delay }) => h(
+      motion.div,
+      {
+        initial: { opacity: 0, y: 30, scale: .8 },
+        animate: {
+          opacity: [0.15, 0.32, 0.15],
+          y: [0, -26, 0],
+          x: [0, 12, 0],
+          scale: [1, 1.08, 1]
+        },
+        transition: { duration: 8 + delay, repeat: Infinity, ease: 'easeInOut', delay },
+        style: {
+          position: 'absolute', left, top, width: size, height: size,
+          borderRadius: '999px',
+          background: 'radial-gradient(circle at 30% 30%, rgba(148,209,255,.55), rgba(80,110,255,.08))',
+          filter: 'blur(2px)'
+        }
+      }
+    );
+
+    const App = () => h(window.React.Fragment, null,
+      h(Orb, { size: 150, left: '8%', top: '18%', delay: 0.2 }),
+      h(Orb, { size: 190, left: '82%', top: '22%', delay: 0.6 }),
+      h(Orb, { size: 130, left: '70%', top: '74%', delay: 0.9 })
+    );
+
+    window.ReactDOM.createRoot(rootEl).render(h(App));
+  })();
+</script>
+{% endblock %}

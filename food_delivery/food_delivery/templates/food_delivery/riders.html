@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}骑手信息 · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="wrap page-shop">
+  <div class="shop-head reveal">
+    <h1>骑手信息中心</h1>
+    <p>查看骑手状态、评分、交通工具与当前位置坐标。</p>
+  </div>
+
+  <div class="rider-grid">
+    {% for rider in riders %}
+    <article class="rider-card reveal">
+      <div class="rider-top">
+        <h2>{{ rider.name }}</h2>
+        <span class="status-pill">{{ rider.get_status_display }}</span>
+      </div>
+      <ul>
+        <li><strong>电话：</strong>{{ rider.phone|default:"未填写" }}</li>
+        <li><strong>交通工具：</strong>{{ rider.vehicle }}</li>
+        <li><strong>评分：</strong>⭐ {{ rider.rating }}</li>
+        <li><strong>坐标：</strong>{{ rider.current_latitude }}, {{ rider.current_longitude }}</li>
+      </ul>
+    </article>
+    {% empty %}
+    <p style="color:var(--text-muted);">暂无骑手数据，请先执行 seed_demo。</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

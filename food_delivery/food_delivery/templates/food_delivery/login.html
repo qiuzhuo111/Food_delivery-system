@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}登录 · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="page-form wrap">
+  <h1>欢迎回来</h1>
+  <p class="sub">登录后即可结算购物车</p>
+  <div class="form-card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-row">
+        {{ field.label_tag }}
+        {{ field }}
+        {{ field.errors }}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">登录</button>
+      </div>
+    </form>
+    <p style="text-align:center;margin-top:1.25rem;color:var(--text-muted);font-size:0.92rem;">
+      还没有账号？<a href="{% url 'register' %}">立即注册</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

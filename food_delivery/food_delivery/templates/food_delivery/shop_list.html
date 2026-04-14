@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}餐厅 · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="page-shop wrap">
+  <div class="shop-head reveal">
+    <h1>全部餐厅</h1>
+    <p>选择门店浏览菜单，加入购物车后去结算。</p>
+  </div>
+  <div class="grid-shops">
+    {% for shop in shops %}
+    <article class="card-shop reveal">
+      <a href="{% url 'shop_detail' shop.pk %}">
+        <div class="card-shop-visual {{ shop.cover_key }}"><span>🥢</span></div>
+        <div class="card-shop-body">
+          <h2>{{ shop.name }}</h2>
+          <p>{% if shop.address %}{{ shop.address }}{% else %}美味即刻出发{% endif %}</p>
+          <div class="card-shop-meta">
+            {% if shop.is_open %}<span class="badge badge-open">营业中</span>{% else %}<span class="badge badge-closed">休息中</span>{% endif %}
+            <span class="price-tag">配送 ¥{{ shop.delivery_fee }}</span>
+          </div>
+        </div>
+      </a>
+    </article>
+    {% empty %}
+    <p>暂无餐厅数据。</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}地图追踪 · 鲜达外卖{% endblock %}
+
+{% block extra_head %}
+<style>
+  .map-layout {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  .delivery-static-map {
+    position: relative;
+    min-height: 520px;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    background:
+      linear-gradient(rgba(255,255,255,.1), rgba(255,255,255,.1)),
+      url("https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
+  }
+  .delivery-static-map::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(255,255,255,.22) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, rgba(255,255,255,.22) 1px, transparent 1px) 0 0/28px 28px;
+    pointer-events: none;
+  }
+  .map-badge {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    z-index: 3;
+    background: rgba(255,255,255,.85);
+    color: #1f2937;
+    border: 1px solid rgba(209,213,219,.95);
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    font-size: .78rem;
+    font-weight: 700;
+    backdrop-filter: blur(6px);
+  }
+  .map-pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .18rem .45rem .2rem .3rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
+    color: #111827;
+    background: rgba(255,255,255,.92);
+    border: 1px solid rgba(209,213,219,.95);
+    box-shadow: 0 6px 14px rgba(0,0,0,.14);
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .map-pin::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: inherit;
+    border-right: inherit;
+    border-bottom: inherit;
+  }
+  .map-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .map-pin-shop .map-dot { background: #0071e3; }
+  .map-pin-rider .map-dot { background: #7c3aed; }
+
+  .map-side-panel {
+    background: rgba(255,255,255,.86);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 1rem 1rem 1.1rem;
+  }
+  .legend-list, .mini-riders { margin: .6rem 0 0; padding-left: 1.1rem; }
+  .legend-list li, .mini-riders li { margin-bottom: .45rem; }
+  .dot { width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:.4rem; }
+  .dot-shop { background:#0071e3; }
+  .dot-rider { background:#7c3aed; }
+
+  @media (max-width: 980px) {
+    .map-layout { grid-template-columns: 1fr; }
+    .delivery-static-map { min-height: 420px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap page-shop">
+  <div class="shop-head reveal">
+    <h1>餐厅与骑手地图追踪</h1>
+    <p>静态可视化地图（无第三方地图 API）：展示店铺与骑手位置分布。</p>
+  </div>
+
+  <section class="map-layout reveal">
+    <div id="delivery-static-map" class="delivery-static-map">
+      <span class="map-badge">Static Map</span>
+    </div>
+
+    <aside class="map-side-panel">
+      <h2>图层说明</h2>
+      <ul class="legend-list">
+        <li><span class="dot dot-shop"></span> 餐厅位置</li>
+        <li><span class="dot dot-rider"></span> 骑手位置</li>
+      </ul>
+
+      <h3>骑手信息</h3>
+      <ul class="mini-riders">
+        {% for rider in riders %}
+        <li>
+          <strong>{{ rider.name }}</strong>
+          <span>{{ rider.get_status_display }} · {{ rider.vehicle }} · ⭐{{ rider.rating }}</span>
+        </li>
+        {% empty %}
+        <li>暂无骑手数据</li>
+        {% endfor %}
+      </ul>
+    </aside>
+  </section>
+</div>
+
+<script id="shops-data" type="application/json">[
+{% for shop in shops %}
+{"name":"{{ shop.name|escapejs }}","address":"{{ shop.address|default_if_none:''|escapejs }}","lat":{{ shop.latitude }},"lng":{{ shop.longitude }}}{% if not forloop.last %},{% endif %}
+{% endfor %}
+]</script>
+<script id="riders-data" type="application/json">[
+{% for rider in riders %}
+{"name":"{{ rider.name|escapejs }}","status":"{{ rider.get_status_display|escapejs }}","vehicle":"{{ rider.vehicle|escapejs }}","rating":"{{ rider.rating }}","lat":{{ rider.current_latitude }},"lng":{{ rider.current_longitude }}}{% if not forloop.last %},{% endif %}
+{% endfor %}
+]</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  const mapEl = document.getElementById("delivery-static-map");
+  if (!mapEl) return;
+
+  const shops = JSON.parse(document.getElementById("shops-data")?.textContent || "[]");
+  const riders = JSON.parse(document.getElementById("riders-data")?.textContent || "[]");
+  const points = [
+    ...shops.map((s) => ({ ...s, kind: "shop" })),
+    ...riders.map((r) => ({ ...r, kind: "rider" })),
+  ];
+  if (!points.length) return;
+
+  const lats = points.map((p) => Number(p.lat));
+  const lngs = points.map((p) => Number(p.lng));
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+
+  const latRange = Math.max(maxLat - minLat, 0.01);
+  const lngRange = Math.max(maxLng - minLng, 0.01);
+
+  function project(lat, lng) {
+    const x = ((Number(lng) - minLng) / lngRange) * 78 + 11;
+    const y = (1 - (Number(lat) - minLat) / latRange) * 78 + 11;
+    return { x, y };
+  }
+
+  points.forEach((p) => {
+    const pos = project(p.lat, p.lng);
+    const pin = document.createElement("div");
+    pin.className = `map-pin ${p.kind === "shop" ? "map-pin-shop" : "map-pin-rider"}`;
+    pin.style.left = `${pos.x}%`;
+    pin.style.top = `${pos.y}%`;
+    pin.innerHTML = `<span class="map-dot"></span><span>${p.name}</span>`;
+    pin.title = p.kind === "shop"
+      ? `${p.name} ${p.address ? `| ${p.address}` : ""}`
+      : `${p.name} | ${p.status} · ${p.vehicle} · 评分 ${p.rating}`;
+    mapEl.appendChild(pin);
+  });
+})();
+</script>
+{% endblock %}

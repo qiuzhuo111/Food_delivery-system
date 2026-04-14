@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}开通 {{ plan.name }} 会员 · 鲜达外卖{% endblock %}
+{% block content %}
+<section class="page-hero wrap reveal member-hero">
+  <h1>开通 {{ plan.name }} 会员</h1>
+  <p>{{ plan.desc }}</p>
+</section>
+
+<section class="wrap page-form reveal">
+  <div class="form-card">
+    <h2 style="margin-top:0;">套餐信息</h2>
+    <p style="color:var(--text-muted);">当前选择：<strong style="color:var(--accent);">{{ plan.name }}</strong></p>
+    <p style="font-size:1.3rem;font-weight:700;margin:.3rem 0 1rem;">{{ plan.price }}</p>
+
+    <h3 style="margin:0 0 .6rem;">权益明细</h3>
+    <ul style="margin:0 0 1.2rem;padding-left:1.1rem;color:var(--text-muted);">
+      {% for b in plan.benefits %}
+      <li style="margin-bottom:.35rem;">{{ b }}</li>
+      {% endfor %}
+    </ul>
+
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+      <a href="{% url 'membership' %}" class="btn btn-ghost">返回会员页</a>
+      <a href="{% url 'shop_list' %}" class="btn btn-primary">去选餐并使用权益</a>
+    </div>
+    <p style="margin-top:1rem;color:var(--text-muted);font-size:.85rem;">说明：当前为演示版页面，支付与自动续费功能暂未接入。</p>
+  </div>
+</section>
+{% endblock %}

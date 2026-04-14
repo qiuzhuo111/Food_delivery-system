@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}骑手工作台 · 鲜达外卖{% endblock %}
+{% block content %}
+<div class="wrap page-shop">
+  <div class="shop-head reveal">
+    <h1>骑手工作台</h1>
+    <p>欢迎，{{ rider.name }}（{{ rider.get_status_display }}） · 当前坐标 {{ rider.current_latitude }}, {{ rider.current_longitude }}</p>
+  </div>
+
+  <section class="reveal" style="margin-bottom:1.6rem;">
+    <h2 class="section-title">附近待接订单（按距离排序）</h2>
+    <div class="order-list">
+      {% for order in available_orders %}
+      <article class="order-card">
+        <div>
+          <h3 style="margin:.1rem 0 .35rem;">订单 #{{ order.id }} · {{ order.shop.name }}</h3>
+          <p style="margin:0;color:var(--text-muted);">用户：{{ order.user.username }} · 地址：{{ order.delivery_address }}</p>
+          <p style="margin:.35rem 0 0;color:var(--text-muted);">
+            金额：¥{{ order.total_amount }} · 距你约 {{ order.distance_km|floatformat:1 }} km · 下单时间：{{ order.created_at|date:"Y-m-d H:i" }}
+          </p>
+        </div>
+        <div style="display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;">
+          <form action="{% url 'rider_take_order' order.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">接单</button>
+          </form>
+          <form action="{% url 'rider_reject_order' order.id %}" method="post" style="display:flex;gap:.45rem;align-items:center;">
+            {% csrf_token %}
+            <input type="text" name="reason" placeholder="拒单原因（可选）" style="padding:.42rem .6rem;border:1px solid var(--border);border-radius:10px;">
+            <button type="submit" class="btn btn-ghost">跳过</button>
+          </form>
+        </div>
+      </article>
+      {% empty %}
+      <p style="color:var(--text-muted);">暂无可接订单。</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2 class="section-title">我的配送订单</h2>
+    <div class="order-list">
+      {% for order in my_orders %}
+      <article class="order-card">
+        <div>
+          <h3 style="margin:.1rem 0 .35rem;">订单 #{{ order.id }} · {{ order.shop.name }}</h3>
+          <p style="margin:0;color:var(--text-muted);">状态：<span class="status-pill">{{ order.get_status_display }}</span> · 用户：{{ order.user.username }}</p>
+          <p style="margin:.35rem 0 0;color:var(--text-muted);">地址：{{ order.delivery_address }}</p>
+          {% if order.rider_note %}
+          <p style="margin:.35rem 0 0;color:#b45309;">异常备注：{{ order.rider_note }}</p>
+          {% endif %}
+        </div>
+        <div style="display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;">
+          {% if order.status == 'accepted' %}
+          <form action="{% url 'rider_update_order_status' order.id %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next_status" value="delivering">
+            <button type="submit" class="btn btn-ghost">开始配送</button>
+          </form>
+          {% elif order.status == 'delivering' %}
+          <form action="{% url 'rider_update_order_status' order.id %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next_status" value="completed">
+            <button type="submit" class="btn btn-primary">完成订单</button>
+          </form>
+          {% endif %}
+
+          {% if order.status == 'accepted' or order.status == 'delivering' %}
+          <form action="{% url 'rider_report_issue' order.id %}" method="post" style="display:flex;gap:.45rem;align-items:center;">
+            {% csrf_token %}
+            <input type="text" name="issue_note" placeholder="异常上报说明（必填）" required style="padding:.42rem .6rem;border:1px solid var(--border);border-radius:10px;">
+            <button type="submit" class="btn btn-ghost">异常上报</button>
+          </form>
+          {% endif %}
+        </div>
+      </article>
+      {% empty %}
+      <p style="color:var(--text-muted);">你还没有接单记录。</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
